@@ -166,8 +166,11 @@ fn main() {
 	let mut update_once_a_second_timer = SystemTime::now();
 	let stdin_channel = spawn_stdin_channel();
     loop {
+		// Bacnet Loop
 		adapter::bacnet_loop().unwrap();
+		// Check if we want to update analog input
 		database_loop(&mut update_once_a_second_timer);
+		// Check for key input
 		if let Ok(key) = stdin_channel.try_recv() {
             if check_end_loop(&key) {
 				break;
@@ -190,7 +193,9 @@ fn load_bacnet_functions() -> Result<bool, Box<dyn std::error::Error>> {
 
 fn database_loop(update_once_a_second_timer: &mut SystemTime) {
 	let mut database = db.lock().unwrap();
-	if let Ok(duration) = update_once_a_second_timer.elapsed() {		
+	// Get current time and check elapsed time
+	if let Ok(duration) = update_once_a_second_timer.elapsed() {	
+		// Update analog input every 5 seconds
 		if duration.as_secs() >= 5 {
 			*update_once_a_second_timer = SystemTime::now();
 			if let Some(ExampleDatabaseObject::AnalogInput(analog_input)) = database.get_mut("analog_input-0") {
@@ -264,6 +269,7 @@ fn callback_receive_message(message: *mut u8, max_message_length: u16, received_
 			*network_type = bacnet_const::NETWORK_TYPE_IP;
 		}
 
+		// Check message size
 		if usize::from(max_message_length) < bytes_read || usize::from(MAX_RENDER_BUFFER_LENGTH) < bytes_read {
 			return 0;
 		}
@@ -283,6 +289,7 @@ fn callback_receive_message(message: *mut u8, max_message_length: u16, received_
 fn callback_send_message(message: *const u8, message_length: u16, connection_string: *const u8, connection_string_length: u8, network_type: u8, broadcast: bool) -> u16 {
 	println!("callback_send_message");
 
+	// Check parameters
 	if message.is_null() || message_length == 0 {
 		println!("Nothing to send");
 		return 0;
@@ -386,7 +393,9 @@ fn callback_get_system_time() -> u64 {
 
 fn get_object_name(device_instance: u32, object_type: u16, object_instance: u32, value: *mut c_char, value_element_count: *mut u32, max_element_count: u32, database: MutexGuard<'_, HashMap<String, ExampleDatabaseObject>>) -> bool {	
 	if object_type == bacnet_const::OBJECT_TYPE_DEVICE {
+		// Get object from database
 		if let Some(ExampleDatabaseObject::Device(device)) = database.get(format!("device-{device_instance}").as_str()) {
+			// Check object name length less than value length and store into value
 			if device.object_name.len() < max_element_count.try_into().unwrap() {
 				unsafe {
 					let mut index = 0;

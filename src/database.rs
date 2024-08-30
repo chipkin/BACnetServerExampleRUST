@@ -153,6 +153,7 @@ pub struct ExampleDatabaseDateTimeValue {
 	pub present_value_hundredth_seconds: u8
 }
 
+// Add objects into example database
 pub fn setup_database() -> HashMap::<String, ExampleDatabaseObject> {
 	let mut database = HashMap::<String, ExampleDatabaseObject>::new();
     database.insert("device-389001".to_string(), ExampleDatabaseObject::Device(setup_device()));
@@ -171,6 +172,10 @@ pub fn setup_database() -> HashMap::<String, ExampleDatabaseObject> {
 	database.insert("date_time_value-44".to_string(), ExampleDatabaseObject::DateTimeValue(setup_date_time_value()));
     database
 }
+
+
+
+// Set up object with example properties
 
 fn setup_device() -> ExampleDatabaseDevice {
 	let mut device = ExampleDatabaseDevice {	
